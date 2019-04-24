@@ -1,4 +1,5 @@
-# ArgosJS
+# ArgosJS (Panoptes)
+A JavaScript web-application that provides user-friendly interaction with smart-contracts on any blockchain network. It allows users to gather meaningful information from watching smart-contract events. 
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 7.3.8.
 
