@@ -13,14 +13,6 @@
       <form class="form-horizontal" [formGroup]="setupForm" (ngSubmit)="initArgos()">
         
         <div class="form-group">
-          <label>Provider: </label>
-          <input type="text" formControlName="ethersProvider" class="form-control" [ngClass]="{ 'is-invalid': getFormControls.ethersProvider.errors }"/>
-          <div *ngIf="getFormControls.ethersProvider.errors" class="invalid-feedback">
-            <div *ngIf="getFormControls.ethersProvider.errors.required">Provider is required</div>
-          </div>
-        </div>
-
-        <div class="form-group">
           <label>Contract's ABI: </label>
           <input type="text" formControlName="ethersAbi" class="form-control" [ngClass]="{ 'is-invalid': getFormControls.ethersAbi.errors }"/>
           <div *ngIf="getFormControls.ethersAbi.errors" class="invalid-feedback">
@@ -33,14 +25,6 @@
           <input type="text" formControlName="ethersAddr" class="form-control" [ngClass]="{ 'is-invalid': getFormControls.ethersAddr.errors }"/>
           <div *ngIf="getFormControls.ethersAddr.errors" class="invalid-feedback">
             <div *ngIf="getFormControls.ethersAddr.errors.required">Address is required</div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>Contract's name: </label>
-          <input type="text" formControlName="ethersName" class="form-control" [ngClass]="{ 'is-invalid': getFormControls.ethersName.errors }"/>
-          <div *ngIf="getFormControls.ethersName.errors" class="invalid-feedback">
-            <div *ngIf="getFormControls.ethersName.errors.required">Name is required</div>
           </div>
         </div>
     

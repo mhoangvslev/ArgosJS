@@ -23,6 +23,7 @@
     "core-js": "^2.5.4",
     "ethers": "^4.0.27",
     "jquery": "^3.4.0",
+    "neode": "^0.2.15",
     "openzeppelin-solidity": "^2.2.0",
     "popper.js": "^1.15.0",
     "rxjs": "~6.3.3",
