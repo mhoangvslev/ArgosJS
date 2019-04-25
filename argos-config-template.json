@@ -1,10 +1,13 @@
 {
     "etherscan": {
-        "api": ""
+        "api": "",
+        "contract": {
+            "address": "0x4457DC5a9e71B975A8E0F855bbE795F5Cbdcc10F"
+        }
     },
     "neo4j": {
-        "bolt": "",
-        "username": "",
-        "password": ""
+        "bolt": "bolt://localhost:11001",
+        "username": "neo4j",
+        "password": "argosjs"
     }
 }

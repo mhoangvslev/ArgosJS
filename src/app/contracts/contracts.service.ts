@@ -57,9 +57,9 @@ export class ContractsService {
     console.log(events);
 
     events.forEach( (event) => {
-      let sender = event.from;
-      let receiver = event.to;
-      let value = event.value;
+      let sender: string = event.from;
+      let receiver: string = event.to;
+      let value: number = event.value;
       this._dbService.dbCreateNode(sender, receiver, value);
     });
 

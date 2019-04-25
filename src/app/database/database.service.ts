@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import * as Neode from 'neode';
 
-declare let require: any;
 const config = require('../../../argos-config.json'); 
 
 @Injectable({
@@ -24,19 +23,18 @@ export class DatabaseService {
       address: {
         type: 'string',
         primary: true
-      },
-      balance: 'number'
+      }
     });
 
-    this.dbInstance.model('Sender').relationship('send', 'SEND', 'out', 'Receiver', {
-      since: {
+    this.dbInstance.model('Account').relationship('send', 'SEND', 'out', 'Account', {
+      amount: {
         type: 'number',
         required: true
       }
     });
 
-    this.dbInstance.model('Receiver').relationship('receive', 'RECEIVE', 'in', 'Sender', {
-      since: {
+    this.dbInstance.model('Account').relationship('receive', 'RECEIVE', 'in', 'Account', {
+      amount: {
         type: 'number',
         required: true
       }
@@ -45,31 +43,19 @@ export class DatabaseService {
 
   public dbCreateNode(sender: string, receiver: string, value: number){
     
-    let qSender, qReceiver;
+    Promise.all([
+      this.dbInstance.create('Account', { address: sender }),
+      this.dbInstance.create('Account', { address: receiver })
+    ]).then( ([sender, receiver]) => {
+      // Merge duplicata
+      this.dbInstance.merge('Account', { address: sender });
+      this.dbInstance.merge('Account', { address: receiver });
+
+      // Create relationships
+      sender.relateTo(receiver, 'send', { amount: value});
+      receiver.relateTo(sender, 'receive', { amount: value });
+    });
     
-    const qSenderQuery = this.dbFindNode('sender', 'Account', 'address', sender)
-      .then((result) => {
-        if(result.records.length == 0){
-          qSender = result.records[0];
-        }else{
-          qSender = this.dbInstance.create('Account', {
-            address: sender,
-            balance: 0
-          })
-        }
-      });
-    
-    const qReceiverQuery = this.dbFindNode('receiver', 'Account', 'address', receiver)
-      .then((result) => {
-        if(result.records.length == 0){
-          qReceiver = result.records[0];
-        }else{
-          qReceiver = this.dbInstance.create('Account', {
-            address: receiver,
-            balance: value
-          })
-        }
-      });
   }
 
   async dbFindNode(alias: string, model: any, target: string, condition: any){
