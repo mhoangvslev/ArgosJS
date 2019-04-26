@@ -4,7 +4,7 @@ import { ContractsService } from './contracts/contracts.service';
 import { DatabaseService } from './database/database.service';
 
 declare let require: any;
-const config = require("../../argos-config.json");
+const config = require("../../argos-config.js");
 
 @Component({
   selector: 'app-root',

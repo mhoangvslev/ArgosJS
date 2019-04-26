@@ -2,8 +2,7 @@ import { Injectable } from '@angular/core';
 import { ethers } from 'ethers';
 import { DatabaseService } from '../database/database.service';
 
-declare let require: any;
-const options = require('../../../argos-config.json'); 
+const options = require('../../../argos-config.js'); 
 
 
 @Injectable({
@@ -54,16 +53,20 @@ export class ContractsService {
     this._dbService.createERC20Model();
     const events = await this.getEvents("Transfer");
 
-    console.log(events);
+    //console.log(events);
+
+    var p = Promise.resolve();
 
     events.forEach( (event) => {
       let sender: string = event.from;
       let receiver: string = event.to;
-      let value: number = event.value;
-      this._dbService.dbCreateNode(sender, receiver, value);
+      let value: ethers.utils.BigNumber = event.value;
+      let strValue = value.toString();
+
+      console.log(strValue);
+      this._dbService.dbCreateNode(sender, receiver, strValue);
+
+      console.log("Database updated!");
     });
-
-  }
-
-  
+  }  
 }
