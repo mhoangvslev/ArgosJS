@@ -3,6 +3,10 @@ A JavaScript web-application that provides user-friendly interaction with smart-
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 7.3.8.
 
+## Prerequisites
+- [NodeJS](), version prior to 12.0.0
+- [argos.js]() module: ``` npm install argosjs```
+
 ## Development server
 
 Run `sh build.sh` on the first time. This will install modules and add few workarounds.

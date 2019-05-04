@@ -3,7 +3,7 @@ module.exports = {
         type: 'string',
         primary: true
     },
-    senders: {
+    send: {
         type: 'relationship',
         relationship: 'SEND',
         direction: 'out',
@@ -15,9 +15,9 @@ module.exports = {
         eager: true
     },
 
-    receivers: {
+    receive: {
         type: 'relationship',
-        relationship: 'SEND',
+        relationship: 'RECEIVE',
         direction: 'in',
         target: 'Account',
         cascade: 'delete',

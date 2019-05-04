@@ -1,13 +1,14 @@
 {
-  "name": "argos-js",
-  "version": "0.0.0",
+  "name": "argos-panoptes",
+  "version": "0.0.1",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e"
+    "e2e": "ng e2e",
+    "argos-rebuild": "npm unlink argosjs; npm link /home/minhhoangdang/Documents/ResearchProjects/argos.js; ng serve;"
   },
   "private": true,
   "dependencies": {
@@ -50,5 +51,22 @@
     "ts-node": "~7.0.0",
     "tslint": "~5.11.0",
     "typescript": "~3.2.2"
-  }
+  },
+  "description": "A JavaScript web-application that provides user-friendly interaction with smart-contracts on any blockchain network. It allows users to gather meaningful information from watching smart-contract events.",
+  "main": "src/main.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mhoangvslev/ArgosJS.git"
+  },
+  "keywords": [
+    "smart-contract",
+    "event-listener",
+    "graph database"
+  ],
+  "author": "Minh-Hoang DANG",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mhoangvslev/ArgosJS/issues"
+  },
+  "homepage": "https://github.com/mhoangvslev/ArgosJS#readme"
 }
