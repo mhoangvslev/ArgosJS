@@ -3,26 +3,16 @@ module.exports = {
         type: 'string',
         primary: true
     },
-    send: {
+    transfer: {
         type: 'relationship',
-        relationship: 'SEND',
+        relationship: 'TRANSFER',
         direction: 'out',
         target: 'Account',
         cascade: 'delete',
         properties: {
-            amount: "number"
-        },
-        eager: true
-    },
-
-    receive: {
-        type: 'relationship',
-        relationship: 'RECEIVE',
-        direction: 'in',
-        target: 'Account',
-        cascade: 'delete',
-        properties: {
-            amount: "number"
+            amount: "number",
+            blockheight: "integer",
+            date: "date"
         },
         eager: true
     }

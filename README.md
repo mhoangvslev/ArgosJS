@@ -6,6 +6,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 ## Prerequisites
 - [NodeJS](), version prior to 12.0.0
 - [argos.js]() module: ``` npm install argosjs```
+- Fill in the ```argos-config-template.js``` and rename it to ```argos-config.js```
 
 ## Development server
 
