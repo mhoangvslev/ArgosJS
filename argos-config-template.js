@@ -25,7 +25,21 @@ module.exports = {
         http: 'http://localhost:11002',
         https: 'https://localhost:11003',
         username: 'neo4j',
-        password: 'argosjs'
+        password: 'argosjs',
+        driverConf: {
+            NEO4J_ENCRYPTED: 'ENCRYPTION_OFF', 
+            NEO4J_TRUST: 'TRUST_ALL_CERTIFICATES', // # TRUST_ALL_CERTIFICATES, TRUST_ON_FIRST_USE, TRUST_SIGNED_CERTIFICATES, TRUST_CUSTOM_CA_SIGNED_CERTIFICATES, TRUST_SYSTEM_CA_SIGNED_CERTIFICATES
+            NEO4J_TRUSTED_CERTIFICATES: '',
+            NEO4J_KNOWN_HOSTS: '127.0.0.1',
+
+            NEO4J_MAX_CONNECTION_POOLSIZE: 1000,
+            NEO4J_MAX_TRANSACTION_RETRY_TIME: 5000,
+            NEO4J_LOAD_BALANCING_STRATEGY: 'least_connected', // least_connected or round_robin
+            NEO4J_MAX_CONNECTION_LIFETIME: 36000,
+            NEO4J_CONNECTION_TIMEOUT: 36000,
+            NEO4J_DISABLE_LOSSLESS_INTEGERS: false,
+            NEO4J_LOGGING_LEVEL: 'logging' // DEBUG, INFO, WARN and ERROR
+        }
     },
     contract: {
         address: '0x0DA345128EB3337E091942f4Ff57a5dD199854bF',

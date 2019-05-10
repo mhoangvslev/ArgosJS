@@ -1,6 +1,7 @@
 import { Component, HostListener, NgZone } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Neo4J, EthereumWatcher, Database, Watcher, ProviderEnum } from "argosjs";
+import { Database, Watcher, ProviderEnum, WatcherFactory, WatcherEnum, DatabaseEnum } from "argosjs";
+import { } from "neovis.js";
 
 const config = require("../../argos-config.js");
 
@@ -16,31 +17,44 @@ export class AppComponent {
   _contractService: Watcher;
   _dbService: Database;
 
-  constructor(private formBuildier: FormBuilder ) {
+  constructor(private formBuildier: FormBuilder) {
   }
 
   /* Form controls */
-  ngOnInit(){
+  ngOnInit() {
     this.setupForm = this.formBuildier.group({
-      ethersAbi: [ config.contract.abi, Validators.required],
-      ethersAddr: [ config.contract.address, Validators.required],
+      ethersAbi: [config.contract.abi, Validators.required],
+      ethersAddr: [config.contract.address, Validators.required],
+      clearDB: [false]
     });
   }
 
   get getFormControls() { return this.setupForm.controls; }
-  
+
   /* Argos */
-  initArgos(){
+  initArgos() {
 
     // Attributes from form
     const ctrl = this.setupForm.controls;
     const abi = ctrl.ethersAbi.value;
     const addr = ctrl.ethersAddr.value;
-  
-    this._dbService = new Neo4J(config.neo4j.bolt, config.neo4j.username, config.neo4j.password, true);
-    this._dbService.dbCreateModel(require('../models/Account.js'));
+    const clearDB = ctrl.clearDB.value;
 
-    this._contractService = new EthereumWatcher(addr, abi, ProviderEnum.InfuraProvider, this._dbService, config);
+    const dbConstructor = {
+      type: DatabaseEnum.Neo4J,
+      config: config.database.neo4j,
+      model: require('../models/Account.js')
+    }
+
+    this._contractService = WatcherFactory.createWatcherInstance({
+      type: WatcherEnum.EthereumWatcher,
+      provider: ProviderEnum.InfuraProvider,
+      clearDB: clearDB,
+      address: addr,
+      abi: abi,
+      db: dbConstructor,
+      providerConf: config.providers
+    });
     this._contractService.watchEvents("Transfer", "transfer");
   }
 }

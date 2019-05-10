@@ -12,7 +12,7 @@ module.exports = {
         properties: {
             amount: "number",
             blockheight: "integer",
-            date: "date"
+            date: "datetime"
         },
         eager: true
     }

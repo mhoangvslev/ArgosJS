@@ -12,6 +12,7 @@
     <div class="col-md-6 offset-md-3">
       <form class="form-horizontal" [formGroup]="setupForm" (ngSubmit)="initArgos()">
         
+        <!-- ABI -->
         <div class="form-group">
           <label>Contract's ABI: </label>
           <input type="text" formControlName="ethersAbi" class="form-control" [ngClass]="{ 'is-invalid': getFormControls.ethersAbi.errors }"/>
@@ -20,12 +21,20 @@
           </div>
         </div>
 
+        <!-- Address -->
         <div class="form-group">
           <label>Contract's address: </label>
           <input type="text" formControlName="ethersAddr" class="form-control" [ngClass]="{ 'is-invalid': getFormControls.ethersAddr.errors }"/>
           <div *ngIf="getFormControls.ethersAddr.errors" class="invalid-feedback">
             <div *ngIf="getFormControls.ethersAddr.errors.required">Address is required</div>
           </div>
+        </div>
+
+        <!-- flush db first? -->
+        <div class="form-group">
+          <label>Retrieve from genesis block (clear DB): </label>
+          <input type="checkbox" formControlName="clearDB"/>
+          
         </div>
     
         <div class="form-group">
