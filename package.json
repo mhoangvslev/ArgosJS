@@ -1,9 +1,9 @@
 {
   "name": "argos-panoptes",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve --ssl --ssl-key ./network/localhost.key --ssl-cert ./network/localhost.crt",
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
@@ -25,7 +25,6 @@
     "jquery": "^3.4.1",
     "neo4j-driver": "^1.7.4",
     "neode": "^0.2.15",
-    "neovis.js": "^1.0.0",
     "net": "^1.0.2",
     "popper.js": "^1.15.0",
     "rxjs": "~6.3.3",

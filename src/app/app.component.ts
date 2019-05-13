@@ -1,7 +1,6 @@
 import { Component, HostListener, NgZone } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Database, Watcher, ProviderEnum, WatcherFactory, WatcherEnum, DatabaseEnum } from "argosjs";
-import { } from "neovis.js";
 
 const config = require("../../argos-config.js");
 

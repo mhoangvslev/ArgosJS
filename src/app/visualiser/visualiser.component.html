@@ -1,0 +1,34 @@
+<p>
+  Below is the represenation of collected events:
+</p>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      <form class="form-horizontal" [formGroup]="setupForm" (ngSubmit)="draw()">
+        
+        <div class="form-group">
+          <label> Centrality Algorithm </label>
+          <select [(ngModel)]="centralityAlgorithm" [ngModelOptions]="{standalone: true}">
+            <option *ngFor="let algorithm of ca_algorithms" value = {{algorithm}}>{{algorithm}}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label> Community Detection Algorithm </label>
+          <select [(ngModel)]="communityDetectionAlgorithm" [ngModelOptions]="{standalone: true}">
+            <option *ngFor="let algorithm of cda_algorithms" value = {{algorithm}}>{{algorithm}}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <button class="btn btn-dark"> Refresh </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="viz"></div>
+
