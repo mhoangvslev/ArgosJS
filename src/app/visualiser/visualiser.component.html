@@ -1,11 +1,9 @@
-<p>
-  Below is the represenation of collected events:
-</p>
+<h2> Below is the represenation of collected events: </h2>
 
 <div class="container">
   <div class="row">
     <div class="col-md-6 offset-md-3">
-      <form class="form-horizontal" [formGroup]="setupForm" (ngSubmit)="draw()">
+      <form class="form-horizontal" [formGroup]="setupForm" (ngSubmit)="drawCommunity()">
         
         <div class="form-group">
           <label> Centrality Algorithm </label>
@@ -22,10 +20,27 @@
         </div>
 
         <div class="form-group">
-          <button class="btn btn-dark"> Refresh </button>
+          <button class="btn btn-dark"> Draw community! </button>
         </div>
 
       </form>
+
+      <h2> Apply pathfinding algorithm </h2>
+
+      <div>
+          <label> Pathfinding Algorithm </label>
+          <select [(ngModel)]="pathAlgo" [ngModelOptions]="{standalone: true}">
+            <option *ngFor="let algorithm of pathfinding_algorithms" value = {{algorithm}}>{{algorithm}}</option>
+          </select>
+      </div>
+
+      <div>
+        <button (click)="drawPath($event)">Draw path!</button>
+      </div>
+
+      <div>
+        <button (click)="resetViz($event)">Clear windows</button>
+      </div>
     </div>
   </div>
 </div>

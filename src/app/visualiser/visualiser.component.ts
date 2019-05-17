@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { NeoVis, DatabaseEnum, CentralityAlgorithmEnum, CommunityDetectionAlgoritmEnum } from "argosjs";
 import { FormGroup, FormBuilder } from '@angular/forms';
+import { PathFindingAlgorithmEnum } from 'argosjs/types/visualiser/Visualiser';
 
 const config = require("../../../argos-config.js");
 
@@ -15,15 +16,18 @@ export class VisualiserComponent implements OnInit {
   setupForm: FormGroup;
   _visualiser: NeoVis;
 
-  centralityAlgorithm: CentralityAlgorithmEnum;
+  centralityAlgorithm: CentralityAlgorithmEnum = CentralityAlgorithmEnum.None;
   ca_algorithms: CentralityAlgorithmEnum[];
 
-  communityDetectionAlgorithm: CommunityDetectionAlgoritmEnum;
+  communityDetectionAlgorithm: CommunityDetectionAlgoritmEnum = CommunityDetectionAlgoritmEnum.None;
   cda_algorithms: CommunityDetectionAlgoritmEnum[]
+
+  pathAlgo: PathFindingAlgorithmEnum = PathFindingAlgorithmEnum.None;
+  pathfinding_algorithms: PathFindingAlgorithmEnum[]
 
   constructor(private formBuildier: FormBuilder) {
     this.cda_algorithms = [
-      undefined,
+      CommunityDetectionAlgoritmEnum.None,
       CommunityDetectionAlgoritmEnum.Louvain,
       CommunityDetectionAlgoritmEnum.LabelPropagation,
       CommunityDetectionAlgoritmEnum.ConnectedComponents,
@@ -33,7 +37,7 @@ export class VisualiserComponent implements OnInit {
     ];
 
     this.ca_algorithms = [
-      undefined,
+      CentralityAlgorithmEnum.None,
       CentralityAlgorithmEnum.PageRank,
       CentralityAlgorithmEnum.ArticleRank,
       CentralityAlgorithmEnum.BetweenessCentrality,
@@ -41,7 +45,17 @@ export class VisualiserComponent implements OnInit {
       CentralityAlgorithmEnum.HarmonicCentrality,
       CentralityAlgorithmEnum.EigenvectorCentrality,
       CentralityAlgorithmEnum.DegreeCentrality,
-    ]
+    ];
+
+    this.pathfinding_algorithms = [
+      PathFindingAlgorithmEnum.None,
+      PathFindingAlgorithmEnum.MinimumWeightSpanningTree,
+      PathFindingAlgorithmEnum.ShortestPath,
+      PathFindingAlgorithmEnum.SingleSourceShortestPath,
+      PathFindingAlgorithmEnum.AllPairsShortestPath,
+      PathFindingAlgorithmEnum.AStar,
+      PathFindingAlgorithmEnum.RandomWalk
+    ];
   }
 
   ngOnInit() {
@@ -58,24 +72,32 @@ export class VisualiserComponent implements OnInit {
     this._visualiser = new NeoVis(dbConstructor, "viz",
       {
         "Account": {
-          "size": "size",
-          "community": "community"
+          "size": config.datavis.neovis.node.sizeProp,
+          "community": config.datavis.neovis.node.communityProp
         }
       },
       {
         "TRANSFER": {
-          "thickness": "weight",
-          "caption": false
+          "thickness": config.datavis.neovis.relationship.thicknessProp,
+          "caption": config.datavis.neovis.relationship.captionProp
         }
       }
     )
   }
 
-  draw() {
+  drawCommunity() {
+    console.log(this.centralityAlgorithm, this.communityDetectionAlgorithm)
+    //this._visualiser.clear();
+    this._visualiser.centrality(this.centralityAlgorithm, { label: 'Account', relationship: 'TRANSFER', writeProperty: "size" });
+    this._visualiser.detectCommunity(this.communityDetectionAlgorithm, { label: 'Account', relationship: 'TRANSFER', writeProperty: "community" });
+  }
+
+  drawPath() {
+    this._visualiser.pathfinding({ algo: PathFindingAlgorithmEnum.ShortestPath, param: { } });
+  }
+
+  resetViz(event: any){
     this._visualiser.clear();
-    this._visualiser.centrality(this.centralityAlgorithm, { label: 'Account', relationship: 'TRANSFER', writeProperty: 'size' });
-    this._visualiser.detectCommunity(this.communityDetectionAlgorithm, { label: 'Account', relationship: 'TRANSFER' });
-    this._visualiser.refresh();
   }
 
 }

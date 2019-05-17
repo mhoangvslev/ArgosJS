@@ -22,6 +22,18 @@ module.exports = {
             network: ""
         }
     },
+    datavis: {
+        neovis: {
+            node: {
+                sizeProp: "size",
+                communityProp: "community"
+            },
+            relationship: {
+                thicknessProp: "weight",
+                captionProp: false
+            }
+        }
+    },
     database: {
         neo4j: {
             bolt: 'bolt://localhost:7687',
