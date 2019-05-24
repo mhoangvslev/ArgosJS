@@ -3,14 +3,26 @@
 <div class="container">
   <div class="row">
     <div class="col-md-6 offset-md-3">
-      <form class="form-horizontal" [formGroup]="setupForm" (ngSubmit)="drawCommunity()">
-        
+
+        <div class="form-group">
+          <label>Number of nodes limit: </label>
+          <input type="number" [(ngModel)]="queryLimit"/>
+        </div>
+
+        <h2>Centrality</h2>
+
         <div class="form-group">
           <label> Centrality Algorithm </label>
           <select [(ngModel)]="centralityAlgorithm" [ngModelOptions]="{standalone: true}">
             <option *ngFor="let algorithm of ca_algorithms" value = {{algorithm}}>{{algorithm}}</option>
           </select>
         </div>
+
+        <div>
+          <button (click)="drawCentrality($event)">Centrality</button>
+        </div>
+
+        <h2>Community Detection</h2>
 
         <div class="form-group">
           <label> Community Detection Algorithm </label>
@@ -19,14 +31,11 @@
           </select>
         </div>
 
-        <div class="form-group">
-          <button class="btn btn-dark"> Draw community! </button>
+        <div>
+          <button (click)="drawCommunity($event)">Detect community...</button>
         </div>
 
-      </form>
-
       <h2> Apply pathfinding algorithm </h2>
-
       <div>
           <label> Pathfinding Algorithm </label>
           <select [(ngModel)]="pathAlgo" [ngModelOptions]="{standalone: true}">
@@ -38,9 +47,18 @@
         <button (click)="drawPath($event)">Draw path!</button>
       </div>
 
+      <h2> Others </h2>
+
       <div>
+        <label> Remove extra props: </label>
         <button (click)="resetViz($event)">Clear windows</button>
       </div>
+
+      <div>
+        <label> Redraw only: </label>
+        <button (click)="redraw($event)">Redraw</button>
+      </div>
+      
     </div>
   </div>
 </div>

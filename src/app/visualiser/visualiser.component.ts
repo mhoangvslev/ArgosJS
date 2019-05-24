@@ -25,6 +25,8 @@ export class VisualiserComponent implements OnInit {
   pathAlgo: PathFindingAlgorithmEnum = PathFindingAlgorithmEnum.None;
   pathfinding_algorithms: PathFindingAlgorithmEnum[]
 
+  queryLimit: number = 700;
+
   constructor(private formBuildier: FormBuilder) {
     this.cda_algorithms = [
       CommunityDetectionAlgoritmEnum.None,
@@ -86,17 +88,22 @@ export class VisualiserComponent implements OnInit {
   }
 
   drawCommunity() {
-    console.log(this.centralityAlgorithm, this.communityDetectionAlgorithm)
-    //this._visualiser.clear();
-    this._visualiser.centrality(this.centralityAlgorithm, { label: 'Account', relationship: 'TRANSFER', writeProperty: "size" });
     this._visualiser.detectCommunity(this.communityDetectionAlgorithm, { label: 'Account', relationship: 'TRANSFER', writeProperty: "community" });
   }
 
-  drawPath() {
-    this._visualiser.pathfinding({ algo: PathFindingAlgorithmEnum.ShortestPath, param: { } });
+  drawCentrality() {
+    this._visualiser.centrality(this.centralityAlgorithm, { label: 'Account', relationship: 'TRANSFER', writeProperty: "size" });
   }
 
-  resetViz(event: any){
+  drawPath() {
+    this._visualiser.pathfinding({ algo: PathFindingAlgorithmEnum.ShortestPath, param: {} });
+  }
+
+  redraw(event: any) {
+    this._visualiser.renderWithCypher({query: ""}, this.queryLimit);
+  }
+
+  resetViz(event: any) {
     this._visualiser.clear();
   }
 
