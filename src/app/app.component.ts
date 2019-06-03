@@ -1,6 +1,12 @@
 import { Component, HostListener, NgZone } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Database, Watcher, ProviderEnum, WatcherFactory, WatcherEnum, DatabaseEnum } from "argosjs";
+import { Database, Watcher, ProviderEnum, WatcherFactory, WatcherEnum, DatabaseEnum, NeoVis, CentralityAlgorithmEnum, CommunityDetectionAlgoritmEnum, DatabaseConstructor, DatabaseFactory } from "argosjs";
+import { PathFindingAlgorithmEnum } from 'argosjs/types/visualiser/Visualiser';
+import { MatTableDataSource } from '@angular/material';
+import { query } from '@angular/core/src/render3';
+import { Options, LabelType } from 'ng5-slider';
+import { toDate } from '@angular/common/src/i18n/format_date';
+import { log } from 'util';
 
 const config = require("../../argos-config.js");
 
@@ -16,7 +22,75 @@ export class AppComponent {
   _contractService: Watcher;
   _dbService: Database;
 
+  _visualiser: NeoVis;
+
+  centralityAlgorithm: CentralityAlgorithmEnum = CentralityAlgorithmEnum.None;
+  ca_algorithms: CentralityAlgorithmEnum[];
+
+  communityDetectionAlgorithm: CommunityDetectionAlgoritmEnum = CommunityDetectionAlgoritmEnum.None;
+  cda_algorithms: CommunityDetectionAlgoritmEnum[]
+
+  pathAlgo: PathFindingAlgorithmEnum = PathFindingAlgorithmEnum.None;
+  pathfinding_algorithms: PathFindingAlgorithmEnum[]
+
+  queryLimit: number = 700;
+  csvFolder: any;
+
+  dbConstructor: DatabaseConstructor = {
+    type: DatabaseEnum.Neo4J,
+    config: config.database.neo4j,
+    model: require('../models/Account.js')
+  }
+
+  dataSource = new MatTableDataSource();
+  columns: Array<any> = [];
+  displayedColumns: string[] = this.columns.map(column => column.name);
+
+  filterAddress: string;
+  filterAddressOut: boolean;
+  filterAddressIn: boolean;
+
+  filterFromDate: number = 0;
+  filterToDate: number = 1;
+  filterQuery: string;
+
+  filterStoryDateRange: Options = {
+    floor: 0,
+    ceil: 1
+  }
+  filterStoryCommunity: number = 0;
+
   constructor(private formBuildier: FormBuilder) {
+    this.cda_algorithms = [
+      CommunityDetectionAlgoritmEnum.None,
+      CommunityDetectionAlgoritmEnum.Louvain,
+      CommunityDetectionAlgoritmEnum.LabelPropagation,
+      CommunityDetectionAlgoritmEnum.ConnectedComponents,
+      CommunityDetectionAlgoritmEnum.StronglyConnectedComponents,
+      CommunityDetectionAlgoritmEnum.ClusteringCoefficient,
+      CommunityDetectionAlgoritmEnum.BalancedTriads
+    ];
+
+    this.ca_algorithms = [
+      CentralityAlgorithmEnum.None,
+      CentralityAlgorithmEnum.PageRank,
+      CentralityAlgorithmEnum.ArticleRank,
+      CentralityAlgorithmEnum.BetweenessCentrality,
+      CentralityAlgorithmEnum.ClosenessCentrality,
+      CentralityAlgorithmEnum.HarmonicCentrality,
+      CentralityAlgorithmEnum.EigenvectorCentrality,
+      CentralityAlgorithmEnum.DegreeCentrality,
+    ];
+
+    this.pathfinding_algorithms = [
+      PathFindingAlgorithmEnum.None,
+      PathFindingAlgorithmEnum.MinimumWeightSpanningTree,
+      PathFindingAlgorithmEnum.ShortestPath,
+      PathFindingAlgorithmEnum.SingleSourceShortestPath,
+      PathFindingAlgorithmEnum.AllPairsShortestPath,
+      PathFindingAlgorithmEnum.AStar,
+      PathFindingAlgorithmEnum.RandomWalk
+    ];
   }
 
   /* Form controls */
@@ -24,8 +98,29 @@ export class AppComponent {
     this.setupForm = this.formBuildier.group({
       ethersAbi: [config.contract.abi, Validators.required],
       ethersAddr: [config.contract.address, Validators.required],
-      clearDB: [false]
+      clearDB: [false],
+      fromDate: [],
+      toDate: []
     });
+
+    const self = this;
+    self._dbService = DatabaseFactory.createDbInstance(self.dbConstructor);
+    self._dbService.executeQuery({
+      query: "MATCH (n)-[r]->(m) RETURN min(r.date) as minBlk, max(r.date) as maxBlk"
+    }).then((result) => {
+      const minBlk = new Date(result[0].get('minBlk'));
+      const maxBlk = new Date(result[0].get('maxBlk'));
+
+      self.filterStoryDateRange = {
+        floor: minBlk.getTime(),
+        ceil: maxBlk.getTime(),
+        translate: (value, label) => {
+          return new Date(value).toLocaleDateString()
+        }
+      }
+    })
+
+    this._visualiser = new NeoVis(this.dbConstructor, "viz", config.datavis.neovis);
   }
 
   get getFormControls() { return this.setupForm.controls; }
@@ -38,12 +133,11 @@ export class AppComponent {
     const abi = ctrl.ethersAbi.value;
     const addr = ctrl.ethersAddr.value;
     const clearDB = ctrl.clearDB.value;
+    let fromDate = ctrl.fromDate.value;
+    let toDate = ctrl.toDate.value;
 
-    const dbConstructor = {
-      type: DatabaseEnum.Neo4J,
-      config: config.database.neo4j,
-      model: require('../models/Account.js')
-    }
+    fromDate = fromDate ? new Date(fromDate.year + "-" + fromDate.month + "-" + fromDate.day).getTime() / 1000 : undefined;
+    toDate = toDate ? new Date(toDate.year + "-" + toDate.month + "-" + toDate.day).getTime() / 1000 : undefined;
 
     this._contractService = WatcherFactory.createWatcherInstance({
       type: WatcherEnum.EthereumWatcher,
@@ -51,9 +145,44 @@ export class AppComponent {
       clearDB: clearDB,
       address: addr,
       abi: abi,
-      db: dbConstructor,
-      providerConf: config.providers
+      db: this.dbConstructor,
+      providerConf: config.providers,
+      exportDir: config.contract.export
     });
-    this._contractService.watchEvents("Transfer", "transfer");
+
+    this._contractService.watchEvents("Transfer", fromDate, toDate);
   }
+
+  drawCommunity() {
+    this._visualiser.detectCommunity(this.communityDetectionAlgorithm, { label: 'Account', relationship: 'TRANSFER', writeProperty: "community" });
+  }
+
+  drawCentrality() {
+    this._visualiser.centrality(this.centralityAlgorithm, { label: 'Account', relationship: 'TRANSFER', writeProperty: "size" });
+  }
+
+  drawPath() {
+    this._visualiser.pathfinding({ algo: PathFindingAlgorithmEnum.ShortestPath, param: {} });
+  }
+
+  redraw(event: any) {
+    this._visualiser.setQueryLimit(this.queryLimit);
+  }
+
+  resetViz(event: any) {
+    this._visualiser.clear();
+  }
+
+  execFilterAddress(event: any) {
+    this._visualiser.filterNodesByAddress(this.filterAddress, this.filterAddressOut, this.filterAddressIn);
+  }
+
+  execFilterQuery(event: any) {
+    this._visualiser.displayWithCypher({ query: this.filterQuery }, 0)
+  }
+
+  execFilterStory(event: any) {
+    this._visualiser.filterCommunityByDateRange(this.filterFromDate, this.filterToDate, this.filterStoryCommunity);
+  }
+
 }

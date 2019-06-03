@@ -4,18 +4,23 @@
     Welcome to {{ title }}!
   </h1>
   <img width="20%" alt="Angular Logo" src="assets/argos_eyes.png">
+  <h2>The all-seeing eyes help you watch smart-contract event: </h2>
+  <br>
 </div>
-<h2>The all-seeing eyes help you watch smart-contract event: </h2>
 
 <div class="container">
+
   <div class="row">
-    <div class="col-md-6 offset-md-3">
+    <div class="col-md-10 offset-md-1">
+
+      <h3>Input contract </h3>
       <form class="form-horizontal" [formGroup]="setupForm" (ngSubmit)="initArgos()">
-        
+
         <!-- ABI -->
         <div class="form-group">
           <label>Contract's ABI: </label>
-          <input type="text" formControlName="ethersAbi" class="form-control" [ngClass]="{ 'is-invalid': getFormControls.ethersAbi.errors }"/>
+          <input type="text" formControlName="ethersAbi" class="form-control"
+            [ngClass]="{ 'is-invalid': getFormControls.ethersAbi.errors }" />
           <div *ngIf="getFormControls.ethersAbi.errors" class="invalid-feedback">
             <div *ngIf="getFormControls.ethersAbi.errors.required">ABI is required</div>
           </div>
@@ -24,7 +29,8 @@
         <!-- Address -->
         <div class="form-group">
           <label>Contract's address: </label>
-          <input type="text" formControlName="ethersAddr" class="form-control" [ngClass]="{ 'is-invalid': getFormControls.ethersAddr.errors }"/>
+          <input type="text" formControlName="ethersAddr" class="form-control"
+            [ngClass]="{ 'is-invalid': getFormControls.ethersAddr.errors }" />
           <div *ngIf="getFormControls.ethersAddr.errors" class="invalid-feedback">
             <div *ngIf="getFormControls.ethersAddr.errors.required">Address is required</div>
           </div>
@@ -33,17 +39,186 @@
         <!-- flush db first? -->
         <div class="form-group">
           <label>Retrieve from genesis block (clear DB): </label>
-          <input type="checkbox" formControlName="clearDB"/>
-          
+          <input type="checkbox" formControlName="clearDB" />
         </div>
-    
+
+        <!-- Date filter -->
+        <strong>Only use if the full load takes too long. Otherwise, use the filter</strong>
+        <div class="form-group">
+          <div class="input-group">
+            <label>From date: </label>
+            <input class="form-control" placeholder="yyyy-mm-dd" name="DatePicker" formControlName="fromDate"
+              ngbDatepicker #fromDatePicker="ngbDatepicker">
+            <div class="input-group-append">
+              <button class="btn btn-outline-secondary calendar" (click)="fromDatePicker.toggle()"
+                type="button"></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="input-group">
+            <label>To date: </label>
+            <input class="form-control" placeholder="yyyy-mm-dd" name="DatePicker" formControlName="toDate"
+              ngbDatepicker #toDatePicker="ngbDatepicker">
+            <div class="input-group-append">
+              <button class="btn btn-outline-secondary calendar" (click)="toDatePicker.toggle()" type="button"></button>
+            </div>
+          </div>
+        </div>
+
         <div class="form-group">
           <button class="btn btn-dark"> Start watching </button>
         </div>
 
       </form>
+
+      <div class="form-group">
+        <label>Number of nodes limit: </label>
+        <input class="form-control" type="number" [(ngModel)]="queryLimit" />
+        <button class="btn btn-dark" (click)="redraw($event)">Redraw</button>
+      </div>
+
+      <h2>Centrality</h2>
+
+      <div class="form-group">
+        <label> Centrality Algorithm </label>
+        <select [(ngModel)]="centralityAlgorithm" [ngModelOptions]="{standalone: true}">
+          <option *ngFor="let algorithm of ca_algorithms" value={{algorithm}}>{{algorithm}}</option>
+        </select>
+      </div>
+
+      <div>
+        <button class="btn btn-dark" (click)="drawCentrality($event)">Centrality</button>
+      </div>
+
+      <h3>Community Detection</h3>
+      <div class="form-group">
+        <label> Community Detection Algorithm </label>
+        <select [(ngModel)]="communityDetectionAlgorithm" [ngModelOptions]="{standalone: true}">
+          <option *ngFor="let algorithm of cda_algorithms" value={{algorithm}}>{{algorithm}}</option>
+        </select>
+      </div>
+
+      <div>
+        <button class="btn btn-dark" (click)="drawCommunity($event)">Detect community...</button>
+      </div>
+
+      <h3> Apply pathfinding algorithm </h3>
+      <div>
+        <label> From: </label><input class="form-control" type="text" [(ngModel)]="pathfnd_fromNode" />
+        <label> To: </label><input class="form-control" type="text" [(ngModel)]="pathfnd_toNode" />
+
+        <label> Pathfinding Algorithm </label>
+        <select [(ngModel)]="pathAlgo" [ngModelOptions]="{standalone: true}">
+          <option *ngFor="let algorithm of pathfinding_algorithms" value={{algorithm}}>{{algorithm}}</option>
+        </select>
+      </div>
+
+      <div>
+        <button class="btn btn-dark" (click)="drawPath($event)">Draw path!</button>
+      </div>
+
+      <h3> Utilities </h3>
+      <div>
+        <label> Remove extra props: </label>
+        <button class="btn btn-dark" (click)="resetViz($event)">Clear windows</button>
+      </div>
+
+      <h3>Filter result</h3>
+      <div>
+        <br>
+        <h4>Filter paths from/to a specific node:</h4>
+        <div>
+          <label>Filter address: </label>
+          <input class="form-control" type="text" [(ngModel)]="filterAddress" />
+
+          <label>Display incoming edges?: </label>
+          <input type="checkbox" [(ngModel)]="filterAddressIn" />
+
+          <label>Display outcoming edges?: </label>
+          <input type="checkbox" [(ngModel)]="filterAddressOut" />
+
+          <br><button class="btn btn-dark" (click)="execFilterAddress($event)">Filter by date range</button>
+        </div>
+      </div>
+
+      <!--
+      <div>
+        <br>
+        <h4>Filter paths from/to a specific range of dates</h4>
+
+        <div class="form-group">
+          <div class="input-group">
+            <label>From date: </label>
+            <input class="form-control" placeholder="yyyy-mm-dd" name="DatePicker" [(ngModel)]="filterFromDate"
+              [ngModelOptions]="{standalone: true}" ngbDatepicker #ffd="ngbDatepicker">
+            <div class="input-group-append">
+              <button class="btn btn-outline-secondary calendar" (click)="ffd.toggle()" type="button"></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="input-group">
+            <label>To date: </label>
+            <input class="form-control" placeholder="yyyy-mm-dd" name="DatePicker" [(ngModel)]="filterToDate"
+              [ngModelOptions]="{standalone: true}" ngbDatepicker #ftd="ngbDatepicker">
+            <div class="input-group-append">
+              <button class="btn btn-outline-secondary calendar" (click)="ftd.toggle()" type="button"></button>
+            </div>
+          </div>
+        </div>
+
+        <br><button class="btn btn-dark" (click)="execFilterDays($event)">Filter by day</button>
+      </div>
+
+    -->
+
+      <div>
+        <br>
+        <h4>Custom query</h4>
+        <div>
+          <label>Filter address: </label>
+          <input class="form-control" type="text" [(ngModel)]="filterQuery" />
+
+          <br><button class="btn btn-dark" (click)="execFilterQuery($event)">Visualise query!</button>
+        </div>
+      </div>
+
+      <div>
+        <br>
+        <h4>Community evolution</h4>
+        <div>
+          <label>Community ID: </label>
+          <input class="form-control" type="number" [(ngModel)]="filterStoryCommunity" />
+          <label>Date range: </label>
+          <ng5-slider [(value)]="filterFromDate" [(highValue)]="filterToDate" [options]="filterStoryDateRange">
+          </ng5-slider>
+
+          <br><button class="btn btn-dark" (click)="execFilterStory($event)">Filter by address</button>
+        </div>
+      </div>
+
+
     </div>
   </div>
 </div>
+
+<div>
+  <table mat-table [dataSource]="dataSource" matSort>
+    <ng-container *ngFor="let column of columns" matColumnDef="{{column.name}}">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>{{column.label}}</th>
+      <td mat-cell *matCellDef="let element"> {{element[column.name]}} </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+  <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+</div>
+
+<div id="viz"></div>
+
 
 <router-outlet></router-outlet>
