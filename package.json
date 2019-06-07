@@ -55,8 +55,8 @@
     "karma-jasmine-html-reporter": "^0.2.2",
     "protractor": "~5.4.0",
     "ts-node": "~7.0.0",
-    "tslint": "~5.11.0",
-    "typescript": "~3.2.2"
+    "tslint": "^5.11.0",
+    "typescript": "^3.2.4"
   },
   "description": "A JavaScript web-application that provides user-friendly interaction with smart-contracts on any blockchain network. It allows users to gather meaningful information from watching smart-contract events.",
   "main": "src/main.ts",

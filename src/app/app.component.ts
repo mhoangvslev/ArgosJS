@@ -1,12 +1,8 @@
 import { Component, HostListener, NgZone } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Database, Watcher, ProviderEnum, WatcherFactory, WatcherEnum, DatabaseEnum, NeoVis, CentralityAlgorithmEnum, CommunityDetectionAlgoritmEnum, DatabaseConstructor, DatabaseFactory } from "argosjs";
-import { PathFindingAlgorithmEnum } from 'argosjs/types/visualiser/Visualiser';
+import { Database, Watcher, NeoVis, CentralityAlgorithmEnum, CommunityDetectionAlgoritmEnum, PathFindingAlgorithmEnum, Neo4JConstructor, DatabaseFactory, WatcherFactory, WatcherEnum, ProviderEnum } from "argosjs";
 import { MatTableDataSource } from '@angular/material';
-import { query } from '@angular/core/src/render3';
-import { Options, LabelType } from 'ng5-slider';
-import { toDate } from '@angular/common/src/i18n/format_date';
-import { log } from 'util';
+import { Options } from 'ng5-slider';
 
 const config = require("../../argos-config.js");
 
@@ -36,9 +32,12 @@ export class AppComponent {
   queryLimit: number = 700;
   csvFolder: any;
 
-  dbConstructor: DatabaseConstructor = {
-    type: DatabaseEnum.Neo4J,
-    config: config.database.neo4j,
+  dbConstructor: Neo4JConstructor = {
+    username: config.database.neo4j.username,
+    password: config.database.neo4j.password,
+    bolt: config.database.neo4j.bolt,
+    enterpriseMode: config.database.neo4j.enterpriseMode,
+    driverConf: config.database.neo4j.driverConf,
     model: require('../models/Account.js')
   }
 
@@ -50,8 +49,8 @@ export class AppComponent {
   filterAddressOut: boolean;
   filterAddressIn: boolean;
 
-  filterFromDate: number = 0;
-  filterToDate: number = 1;
+  filterFromDate: number;
+  filterToDate: number;
   filterQuery: string;
 
   filterStoryDateRange: Options = {
