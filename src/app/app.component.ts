@@ -2,9 +2,9 @@ import { Component, HostListener, NgZone } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Database, Watcher, NeoVis, CentralityAlgorithmEnum, CommunityDetectionAlgoritmEnum, PathFindingAlgorithmEnum, Neo4JConstructor, DatabaseFactory, WatcherFactory, WatcherEnum, ProviderEnum } from "argosjs";
 import { MatTableDataSource } from '@angular/material';
-import { Options } from 'ng5-slider';
+import { Options, LabelType } from 'ng5-slider';
 
-const config = require("../../argos-config.js");
+const config = require("../../config/argos-config.js");
 
 @Component({
   selector: 'app-root',
@@ -12,13 +12,18 @@ const config = require("../../argos-config.js");
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
+
+  private _eventWatcher: Watcher;
+  private _dbService: Database;
+
+  private _visualiser: NeoVis;
+
+  private _strategies: object = require("../../database/strategies/KittyStrategies.js");
+  //private _strategies: object = require("../../database/strategies/AccountStrategies.js");
+
   title = 'ArgosJS (Panoptes)';
 
   setupForm: FormGroup;
-  _contractService: Watcher;
-  _dbService: Database;
-
-  _visualiser: NeoVis;
 
   centralityAlgorithm: CentralityAlgorithmEnum = CentralityAlgorithmEnum.None;
   ca_algorithms: CentralityAlgorithmEnum[];
@@ -38,7 +43,10 @@ export class AppComponent {
     bolt: config.database.neo4j.bolt,
     enterpriseMode: config.database.neo4j.enterpriseMode,
     driverConf: config.database.neo4j.driverConf,
-    model: require('../models/Account.js')
+    model: {
+      Kitty: require('../../database/models/Kitty.js'),
+      //Account: require('../../database/models/Account.js')
+    }
   }
 
   dataSource = new MatTableDataSource();
@@ -110,16 +118,43 @@ export class AppComponent {
       const minBlk = new Date(result[0].get('minBlk'));
       const maxBlk = new Date(result[0].get('maxBlk'));
 
+      this.filterFromDate = minBlk.getTime();
+      this.filterToDate = maxBlk.getTime();
+
       self.filterStoryDateRange = {
         floor: minBlk.getTime(),
         ceil: maxBlk.getTime(),
         translate: (value, label) => {
-          return new Date(value).toLocaleDateString()
+
+          const date = new Date(value)
+          const formatted = date.toLocaleDateString() + '@' + date.toLocaleTimeString();
+
+          return formatted;
         }
       }
     })
 
+    // Create default watcher
+    this._eventWatcher = WatcherFactory.createWatcherInstance({
+      type: WatcherEnum.EthereumWatcher,
+      provider: ProviderEnum.InfuraProvider,
+      clearDB: false,
+      address: config.contract.address,
+      abi: config.contract.abi,
+      db: this.dbConstructor,
+      providerConf: config.providers,
+      exportDir: config.contract.export
+    });
+
+    // Set DES and PS to the watcher
+    this._eventWatcher.setStrategies({
+      DataExtractionStrategy: this._strategies["DataExtractionStrategy"],
+      PersistenceStrategy: this._strategies["PersistenceStrategy"]
+    });
+
+    // Create visualiser
     this._visualiser = new NeoVis(this.dbConstructor, "viz", config.datavis.neovis);
+    this._visualiser.setVisualisationStrategy(this._strategies["VisualisationStrategy"]);
   }
 
   get getFormControls() { return this.setupForm.controls; }
@@ -129,35 +164,38 @@ export class AppComponent {
 
     // Attributes from form
     const ctrl = this.setupForm.controls;
-    const abi = ctrl.ethersAbi.value;
-    const addr = ctrl.ethersAddr.value;
+    //const abi = ctrl.ethersAbi.value;
+    //const addr = ctrl.ethersAddr.value;
+
     const clearDB = ctrl.clearDB.value;
-    let fromDate = ctrl.fromDate.value;
-    let toDate = ctrl.toDate.value;
+    let fromDateForm = ctrl.fromDate.value;
+    let toDateForm = ctrl.toDate.value;
 
-    fromDate = fromDate ? new Date(fromDate.year + "-" + fromDate.month + "-" + fromDate.day).getTime() / 1000 : undefined;
-    toDate = toDate ? new Date(toDate.year + "-" + toDate.month + "-" + toDate.day).getTime() / 1000 : undefined;
 
-    this._contractService = WatcherFactory.createWatcherInstance({
-      type: WatcherEnum.EthereumWatcher,
-      provider: ProviderEnum.InfuraProvider,
-      clearDB: clearDB,
-      address: addr,
-      abi: abi,
-      db: this.dbConstructor,
-      providerConf: config.providers,
-      exportDir: config.contract.export
+    const fromDate = fromDateForm ? new Date(fromDateForm.year + "-" + fromDateForm.month + "-" + fromDateForm.day) : undefined;
+    const toDate = toDateForm ? new Date(toDateForm.year + "-" + toDateForm.month + "-" + toDateForm.day) : undefined;
+
+    this._eventWatcher.setClearDBFlag(clearDB);
+
+    // Set DES and PS to the watcher
+    this._eventWatcher.setStrategies({
+      DataExtractionStrategy: this._strategies["DataExtractionStrategy"],
+      PersistenceStrategy: this._strategies["PersistenceStrategy"]
     });
 
-    this._contractService.watchEvents("Transfer", fromDate, toDate);
+    // Watch events
+    this._eventWatcher.watchEvents("Birth", fromDate, toDate)
+      .then(() => {
+        this._visualiser.refresh();
+      });
   }
 
-  drawCommunity() {
-    this._visualiser.detectCommunity(this.communityDetectionAlgorithm, { label: 'Account', relationship: 'TRANSFER', writeProperty: "community" });
+  drawCommunity(event: any) {
+    this._visualiser.detectCommunity(this.communityDetectionAlgorithm, { label: 'Kitty', relationship: 'CHILD', writeProperty: "community" });
   }
 
-  drawCentrality() {
-    this._visualiser.centrality(this.centralityAlgorithm, { label: 'Account', relationship: 'TRANSFER', writeProperty: "size" });
+  drawCentrality(event: any) {
+    this._visualiser.centrality(this.centralityAlgorithm, { label: 'Kitty', relationship: 'CHILD', writeProperty: "size" });
   }
 
   drawPath() {
@@ -181,7 +219,11 @@ export class AppComponent {
   }
 
   execFilterStory(event: any) {
-    this._visualiser.filterCommunityByDateRange(this.filterFromDate, this.filterToDate, this.filterStoryCommunity);
+    this._visualiser.filterCommunityByDateRange(
+      this.filterFromDate,
+      this.filterToDate,
+      this.filterStoryCommunity
+    );
   }
 
 }

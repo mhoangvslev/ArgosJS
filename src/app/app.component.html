@@ -13,10 +13,11 @@
   <div class="row">
     <div class="col-md-10 offset-md-1">
 
-      <h3>Input contract </h3>
+      <h3>Load Contract </h3>
       <form class="form-horizontal" [formGroup]="setupForm" (ngSubmit)="initArgos()">
 
         <!-- ABI -->
+        <!--
         <div class="form-group">
           <label>Contract's ABI: </label>
           <input type="text" formControlName="ethersAbi" class="form-control"
@@ -25,8 +26,10 @@
             <div *ngIf="getFormControls.ethersAbi.errors.required">ABI is required</div>
           </div>
         </div>
+      -->
 
         <!-- Address -->
+        <!--
         <div class="form-group">
           <label>Contract's address: </label>
           <input type="text" formControlName="ethersAddr" class="form-control"
@@ -35,6 +38,7 @@
             <div *ngIf="getFormControls.ethersAddr.errors.required">Address is required</div>
           </div>
         </div>
+      -->
 
         <!-- flush db first? -->
         <div class="form-group">
@@ -104,6 +108,7 @@
         <button class="btn btn-dark" (click)="drawCommunity($event)">Detect community...</button>
       </div>
 
+      <!--
       <h3> Apply pathfinding algorithm </h3>
       <div>
         <label> From: </label><input class="form-control" type="text" [(ngModel)]="pathfnd_fromNode" />
@@ -118,6 +123,7 @@
       <div>
         <button class="btn btn-dark" (click)="drawPath($event)">Draw path!</button>
       </div>
+    -->
 
       <h3> Utilities </h3>
       <div>
@@ -142,38 +148,6 @@
           <br><button class="btn btn-dark" (click)="execFilterAddress($event)">Filter by date range</button>
         </div>
       </div>
-
-      <!--
-      <div>
-        <br>
-        <h4>Filter paths from/to a specific range of dates</h4>
-
-        <div class="form-group">
-          <div class="input-group">
-            <label>From date: </label>
-            <input class="form-control" placeholder="yyyy-mm-dd" name="DatePicker" [(ngModel)]="filterFromDate"
-              [ngModelOptions]="{standalone: true}" ngbDatepicker #ffd="ngbDatepicker">
-            <div class="input-group-append">
-              <button class="btn btn-outline-secondary calendar" (click)="ffd.toggle()" type="button"></button>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <div class="input-group">
-            <label>To date: </label>
-            <input class="form-control" placeholder="yyyy-mm-dd" name="DatePicker" [(ngModel)]="filterToDate"
-              [ngModelOptions]="{standalone: true}" ngbDatepicker #ftd="ngbDatepicker">
-            <div class="input-group-append">
-              <button class="btn btn-outline-secondary calendar" (click)="ftd.toggle()" type="button"></button>
-            </div>
-          </div>
-        </div>
-
-        <br><button class="btn btn-dark" (click)="execFilterDays($event)">Filter by day</button>
-      </div>
-
-    -->
 
       <div>
         <br>
@@ -205,6 +179,7 @@
   </div>
 </div>
 
+<!--
 <div>
   <table mat-table [dataSource]="dataSource" matSort>
     <ng-container *ngFor="let column of columns" matColumnDef="{{column.name}}">
@@ -217,6 +192,7 @@
   </table>
   <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
 </div>
+-->
 
 <div id="viz"></div>
 

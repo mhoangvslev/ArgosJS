@@ -1,0 +1,28 @@
+version: '2.1'
+
+services:
+  argosjs:
+    image: argosjs
+    build: .
+    environment:
+      NODE_ENV: production
+    links:
+      - neo4j
+    ports:
+      - 14200:4200
+    volumes:
+      - ./db/csv:/app/db/csv
+  
+  neo4j:
+    image: neo4j:latest
+    environment:
+      - NEO4J_AUTH=none
+      - NEO4J_apoc.export.file.enabled=true
+      - NEO4J_apoc.import.file.enabled=true
+      - NEO4J_apoc.import.file.use_neo4j_config=false
+    ports:
+      - "17474:7474"
+      - "17473:7473"
+      - "17687:7687"
+    volumes:
+      - ./db/csv:/var/lib/neo4j/import
