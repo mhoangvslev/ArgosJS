@@ -1,0 +1,3 @@
+node patch-webpack.js
+sed -i "s/node: false/node: {crypto: true, stream: true, fs: 'empty', net: 'empty'}/g" ./node_modules/@angular-devkit/build-angular/src/angular-cli-files/models/webpack-configs/browser.js
+sed -i "s/node: {crypto: true, stream: true}/node: {crypto: true, stream: true, fs: 'empty', net: 'empty'}/g" ./node_modules/@angular-devkit/build-angular/src/angular-cli-files/models/webpack-configs/browser.js

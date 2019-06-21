@@ -18,18 +18,25 @@ export class AppComponent {
 
   private _visualiser: NeoVis;
 
-  private _strategies: object = require("../../database/strategies/KittyStrategies.js");
-  //private _strategies: object = require("../../database/strategies/AccountStrategies.js");
+  //private _strategies: object = require("../../database/strategies/KittyStrategies.js");
+  private _strategies: object = require("../../database/strategies/AccountStrategies.js");
 
   title = 'ArgosJS (Panoptes)';
 
   setupForm: FormGroup;
 
+  nodeTypes: string[];
+  relTypes: string[];
+
   centralityAlgorithm: CentralityAlgorithmEnum = CentralityAlgorithmEnum.None;
   ca_algorithms: CentralityAlgorithmEnum[];
-
+  ca_label: string;
+  ca_relationship: string;
+  
   communityDetectionAlgorithm: CommunityDetectionAlgoritmEnum = CommunityDetectionAlgoritmEnum.None;
-  cda_algorithms: CommunityDetectionAlgoritmEnum[]
+  cda_algorithms: CommunityDetectionAlgoritmEnum[];
+  cda_label: string;
+  cda_relationship: string;
 
   pathAlgo: PathFindingAlgorithmEnum = PathFindingAlgorithmEnum.None;
   pathfinding_algorithms: PathFindingAlgorithmEnum[]
@@ -44,18 +51,16 @@ export class AppComponent {
     enterpriseMode: config.database.neo4j.enterpriseMode,
     driverConf: config.database.neo4j.driverConf,
     model: {
-      Kitty: require('../../database/models/Kitty.js'),
-      //Account: require('../../database/models/Account.js')
+      //Kitty: require('../../database/models/Kitty.js'),
+      Account: require('../../database/models/Account.js')
     }
   }
 
+  /*
   dataSource = new MatTableDataSource();
   columns: Array<any> = [];
   displayedColumns: string[] = this.columns.map(column => column.name);
-
-  filterAddress: string;
-  filterAddressOut: boolean;
-  filterAddressIn: boolean;
+  */
 
   filterFromDate: number;
   filterToDate: number;
@@ -66,6 +71,7 @@ export class AppComponent {
     ceil: 1
   }
   filterStoryCommunity: number = 0;
+  _contractInfo: any;
 
   constructor(private formBuildier: FormBuilder) {
     this.cda_algorithms = [
@@ -102,19 +108,50 @@ export class AppComponent {
 
   /* Form controls */
   ngOnInit() {
-    this.setupForm = this.formBuildier.group({
-      ethersAbi: [config.contract.abi, Validators.required],
-      ethersAddr: [config.contract.address, Validators.required],
-      clearDB: [false],
-      fromDate: [],
-      toDate: []
-    });
 
     const self = this;
-    self._dbService = DatabaseFactory.createDbInstance(self.dbConstructor);
-    self._dbService.executeQuery({
+
+    // Create DB service
+    this._dbService = DatabaseFactory.createDbInstance(self.dbConstructor);
+    this.nodeTypes = this._dbService.getNodeTypes();
+    this.relTypes = this._dbService.getRelTypes();
+
+    this.ca_label = (this.nodeTypes.length == 1) ? this.nodeTypes[0] : undefined;
+    this.cda_label = (this.nodeTypes.length == 1) ? this.nodeTypes[0] : undefined;
+
+    this.ca_relationship = (this.relTypes.length == 1) ? this.relTypes[0] : undefined;
+    this.cda_relationship = (this.relTypes.length == 1) ? this.relTypes[0] : undefined;
+    
+    // Create default watcher
+    this._contractInfo = this._strategies["Contracts"]["BNB"];
+    this._eventWatcher = WatcherFactory.createWatcherInstance({
+      type: WatcherEnum.EthereumWatcher,
+      provider: ProviderEnum.InfuraProvider,
+      clearDB: false,
+      address: this._contractInfo.address,
+      abi: this._contractInfo.abi,
+      db: this.dbConstructor,
+      providerConf: config.providers,
+      exportDir: config.contract.export
+    });
+
+    // Set DES and PS to the watcher
+    this._eventWatcher.setStrategies({
+      DataExtractionStrategy: this._strategies["DataExtractionStrategy"],
+      PersistenceStrategy: this._strategies["PersistenceStrategy"]
+    });
+
+    // Create visualiser
+    this._visualiser = new NeoVis(this.dbConstructor, "viz", config.datavis.neovis);
+    this._visualiser.setVisualisationStrategy(this._strategies["VisualisationStrategy"]);
+
+
+    // Setup form
+    this._dbService.executeQuery({
       query: "MATCH (n)-[r]->(m) RETURN min(r.date) as minBlk, max(r.date) as maxBlk"
     }).then((result) => {
+      console.log(result[0]);
+
       const minBlk = new Date(result[0].get('minBlk'));
       const maxBlk = new Date(result[0].get('maxBlk'));
 
@@ -132,29 +169,16 @@ export class AppComponent {
           return formatted;
         }
       }
-    })
-
-    // Create default watcher
-    this._eventWatcher = WatcherFactory.createWatcherInstance({
-      type: WatcherEnum.EthereumWatcher,
-      provider: ProviderEnum.InfuraProvider,
-      clearDB: false,
-      address: config.contract.address,
-      abi: config.contract.abi,
-      db: this.dbConstructor,
-      providerConf: config.providers,
-      exportDir: config.contract.export
     });
 
-    // Set DES and PS to the watcher
-    this._eventWatcher.setStrategies({
-      DataExtractionStrategy: this._strategies["DataExtractionStrategy"],
-      PersistenceStrategy: this._strategies["PersistenceStrategy"]
+    // Form
+    this.setupForm = this.formBuildier.group({
+      ethersAbi: [config.contract.abi, Validators.required],
+      ethersAddr: [config.contract.address, Validators.required],
+      clearDB: [false],
+      fromDate: [],
+      toDate: []
     });
-
-    // Create visualiser
-    this._visualiser = new NeoVis(this.dbConstructor, "viz", config.datavis.neovis);
-    this._visualiser.setVisualisationStrategy(this._strategies["VisualisationStrategy"]);
   }
 
   get getFormControls() { return this.setupForm.controls; }
@@ -184,18 +208,18 @@ export class AppComponent {
     });
 
     // Watch events
-    this._eventWatcher.watchEvents("Birth", fromDate, toDate)
+    this._eventWatcher.watchEvents(this._contractInfo["eventName"], fromDate, toDate)
       .then(() => {
         this._visualiser.refresh();
       });
   }
 
   drawCommunity(event: any) {
-    this._visualiser.detectCommunity(this.communityDetectionAlgorithm, { label: 'Kitty', relationship: 'CHILD', writeProperty: "community" });
+    this._visualiser.detectCommunity(this.communityDetectionAlgorithm, { label: 'Account', relationship: 'TRANSFER', writeProperty: "community" });
   }
 
   drawCentrality(event: any) {
-    this._visualiser.centrality(this.centralityAlgorithm, { label: 'Kitty', relationship: 'CHILD', writeProperty: "size" });
+    this._visualiser.centrality(this.centralityAlgorithm, { label: 'Account', relationship: 'TRANSFER', writeProperty: "size" });
   }
 
   drawPath() {
@@ -208,10 +232,6 @@ export class AppComponent {
 
   resetViz(event: any) {
     this._visualiser.clear();
-  }
-
-  execFilterAddress(event: any) {
-    this._visualiser.filterNodesByAddress(this.filterAddress, this.filterAddressOut, this.filterAddressIn);
   }
 
   execFilterQuery(event: any) {
