@@ -81,7 +81,7 @@ module.exports = {
         RelationshipStrategy: {
             0: {
                 relType: "CHILD",
-                relAlias: "maternity",
+                relAlias: "child",
                 direction: "out",
                 source: "kitty",
                 target: "matron",
@@ -92,7 +92,7 @@ module.exports = {
             },
             1: {
                 relType: "CHILD",
-                relAlias: "paternity",
+                relAlias: "child",
                 direction: "out",
                 source: "kitty",
                 target: "sire",

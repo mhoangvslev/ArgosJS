@@ -28,4 +28,4 @@ services:
       - "17473:7473"
       - "17687:7687"
     volumes:
-      - ./database:/var/lib/neo4j/imports
+      - ./database:/var/lib/neo4j/import
