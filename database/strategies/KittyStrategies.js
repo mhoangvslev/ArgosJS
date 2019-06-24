@@ -58,8 +58,6 @@ module.exports = {
                 nodeAlias: "kitty",
                 mergeStrategy: {
                     kittyId: "kittyId",
-                    matronId: "matronId",
-                    sireId: "sireId",
                     genes: "genes",
                     owner: "owner",
                     generation: "generation"

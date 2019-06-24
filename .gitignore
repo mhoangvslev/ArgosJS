@@ -45,4 +45,4 @@ testem.log
 .DS_Store
 Thumbs.db
 
-argos-config\.json
+config/argos-config.js

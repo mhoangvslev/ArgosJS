@@ -16,29 +16,13 @@
       <h3>Load Contract </h3>
       <form class="form-horizontal" [formGroup]="setupForm" (ngSubmit)="initArgos()">
 
-        <!-- ABI -->
-        <!--
+        <!-- Select a contract -->
         <div class="form-group">
-          <label>Contract's ABI: </label>
-          <input type="text" formControlName="ethersAbi" class="form-control"
-            [ngClass]="{ 'is-invalid': getFormControls.ethersAbi.errors }" />
-          <div *ngIf="getFormControls.ethersAbi.errors" class="invalid-feedback">
-            <div *ngIf="getFormControls.ethersAbi.errors.required">ABI is required</div>
-          </div>
+          <label> Select Contract: </label>
+          <select formControlName="contract">
+            <option *ngFor="let contract of contractGroup" value={{contract}}>{{contract}}</option>
+          </select>
         </div>
-      -->
-
-        <!-- Address -->
-        <!--
-        <div class="form-group">
-          <label>Contract's address: </label>
-          <input type="text" formControlName="ethersAddr" class="form-control"
-            [ngClass]="{ 'is-invalid': getFormControls.ethersAddr.errors }" />
-          <div *ngIf="getFormControls.ethersAddr.errors" class="invalid-feedback">
-            <div *ngIf="getFormControls.ethersAddr.errors.required">Address is required</div>
-          </div>
-        </div>
-      -->
 
         <!-- flush db first? -->
         <div class="form-group">

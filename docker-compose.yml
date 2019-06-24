@@ -11,10 +11,13 @@ services:
     ports:
       - 14200:4200
     volumes:
-      - ./db/csv:/app/db/csv
+      - ./config:/app/config
+      - ./models:/app/database/models
+      - ./strategies:/app/database/strategies
+      - ./database:/app/database/import
   
   neo4j:
-    image: neo4j:latest
+    image: neo4j:3.5.6
     environment:
       - NEO4J_AUTH=none
       - NEO4J_apoc.export.file.enabled=true
@@ -25,4 +28,4 @@ services:
       - "17473:7473"
       - "17687:7687"
     volumes:
-      - ./db/csv:/var/lib/neo4j/import
+      - ./database:/var/lib/neo4j/imports

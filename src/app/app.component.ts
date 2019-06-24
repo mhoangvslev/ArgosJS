@@ -18,10 +18,13 @@ export class AppComponent {
 
   private _visualiser: NeoVis;
 
-  //private _strategies: object = require("../../database/strategies/KittyStrategies.js");
-  private _strategies: object = require("../../database/strategies/AccountStrategies.js");
+  private _strategies: object = config.contract.strategies;
 
   title = 'ArgosJS (Panoptes)';
+
+  _contractInfo: any;
+  contractItem: string;
+  contractGroup: string[]
 
   setupForm: FormGroup;
 
@@ -32,7 +35,7 @@ export class AppComponent {
   ca_algorithms: CentralityAlgorithmEnum[];
   ca_label: string;
   ca_relationship: string;
-  
+
   communityDetectionAlgorithm: CommunityDetectionAlgoritmEnum = CommunityDetectionAlgoritmEnum.None;
   cda_algorithms: CommunityDetectionAlgoritmEnum[];
   cda_label: string;
@@ -42,25 +45,6 @@ export class AppComponent {
   pathfinding_algorithms: PathFindingAlgorithmEnum[]
 
   queryLimit: number = 700;
-  csvFolder: any;
-
-  dbConstructor: Neo4JConstructor = {
-    username: config.database.neo4j.username,
-    password: config.database.neo4j.password,
-    bolt: config.database.neo4j.bolt,
-    enterpriseMode: config.database.neo4j.enterpriseMode,
-    driverConf: config.database.neo4j.driverConf,
-    model: {
-      //Kitty: require('../../database/models/Kitty.js'),
-      Account: require('../../database/models/Account.js')
-    }
-  }
-
-  /*
-  dataSource = new MatTableDataSource();
-  columns: Array<any> = [];
-  displayedColumns: string[] = this.columns.map(column => column.name);
-  */
 
   filterFromDate: number;
   filterToDate: number;
@@ -71,7 +55,16 @@ export class AppComponent {
     ceil: 1
   }
   filterStoryCommunity: number = 0;
-  _contractInfo: any;
+
+  // Create DB service
+  private _dbConstructor: Neo4JConstructor = {
+    username: config.database.neo4j.username,
+    password: config.database.neo4j.password,
+    bolt: config.database.neo4j.bolt,
+    enterpriseMode: config.database.neo4j.enterpriseMode,
+    driverConf: config.database.neo4j.driverConf,
+    model: config.contract.model
+  }
 
   constructor(private formBuildier: FormBuilder) {
     this.cda_algorithms = [
@@ -109,10 +102,21 @@ export class AppComponent {
   /* Form controls */
   ngOnInit() {
 
+    this.contractGroup = Object.keys(this._strategies["Contracts"]);
+    this.contractItem = (this.contractGroup.length == 1) ? this.contractGroup[0] : undefined;
+    this._contractInfo = this._strategies["Contracts"][this.contractItem];
+
+    // Form
+    this.setupForm = this.formBuildier.group({
+      contract: [this.contractItem, Validators.required],
+      clearDB: [false],
+      fromDate: [],
+      toDate: []
+    });
+
     const self = this;
 
-    // Create DB service
-    this._dbService = DatabaseFactory.createDbInstance(self.dbConstructor);
+    this._dbService = DatabaseFactory.createDbInstance(this._dbConstructor);
     this.nodeTypes = this._dbService.getNodeTypes();
     this.relTypes = this._dbService.getRelTypes();
 
@@ -121,28 +125,9 @@ export class AppComponent {
 
     this.ca_relationship = (this.relTypes.length == 1) ? this.relTypes[0] : undefined;
     this.cda_relationship = (this.relTypes.length == 1) ? this.relTypes[0] : undefined;
-    
-    // Create default watcher
-    this._contractInfo = this._strategies["Contracts"]["BNB"];
-    this._eventWatcher = WatcherFactory.createWatcherInstance({
-      type: WatcherEnum.EthereumWatcher,
-      provider: ProviderEnum.InfuraProvider,
-      clearDB: false,
-      address: this._contractInfo.address,
-      abi: this._contractInfo.abi,
-      db: this.dbConstructor,
-      providerConf: config.providers,
-      exportDir: config.contract.export
-    });
-
-    // Set DES and PS to the watcher
-    this._eventWatcher.setStrategies({
-      DataExtractionStrategy: this._strategies["DataExtractionStrategy"],
-      PersistenceStrategy: this._strategies["PersistenceStrategy"]
-    });
 
     // Create visualiser
-    this._visualiser = new NeoVis(this.dbConstructor, "viz", config.datavis.neovis);
+    this._visualiser = new NeoVis(this._dbConstructor, "viz", config.datavis.neovis);
     this._visualiser.setVisualisationStrategy(this._strategies["VisualisationStrategy"]);
 
 
@@ -170,15 +155,6 @@ export class AppComponent {
         }
       }
     });
-
-    // Form
-    this.setupForm = this.formBuildier.group({
-      ethersAbi: [config.contract.abi, Validators.required],
-      ethersAddr: [config.contract.address, Validators.required],
-      clearDB: [false],
-      fromDate: [],
-      toDate: []
-    });
   }
 
   get getFormControls() { return this.setupForm.controls; }
@@ -188,9 +164,6 @@ export class AppComponent {
 
     // Attributes from form
     const ctrl = this.setupForm.controls;
-    //const abi = ctrl.ethersAbi.value;
-    //const addr = ctrl.ethersAddr.value;
-
     const clearDB = ctrl.clearDB.value;
     let fromDateForm = ctrl.fromDate.value;
     let toDateForm = ctrl.toDate.value;
@@ -199,7 +172,18 @@ export class AppComponent {
     const fromDate = fromDateForm ? new Date(fromDateForm.year + "-" + fromDateForm.month + "-" + fromDateForm.day) : undefined;
     const toDate = toDateForm ? new Date(toDateForm.year + "-" + toDateForm.month + "-" + toDateForm.day) : undefined;
 
-    this._eventWatcher.setClearDBFlag(clearDB);
+    // Create default watcher
+    this._contractInfo = this._strategies["Contracts"][ctrl.contract.value];
+    this._eventWatcher = WatcherFactory.createWatcherInstance({
+      type: WatcherEnum.EthereumWatcher,
+      provider: ProviderEnum.InfuraProvider,
+      clearDB: clearDB,
+      address: this._contractInfo.address,
+      abi: this._contractInfo.abi,
+      db: this._dbConstructor,
+      providerConf: config.providers,
+      exportDir: config.contract.export
+    });
 
     // Set DES and PS to the watcher
     this._eventWatcher.setStrategies({
@@ -215,11 +199,11 @@ export class AppComponent {
   }
 
   drawCommunity(event: any) {
-    this._visualiser.detectCommunity(this.communityDetectionAlgorithm, { label: 'Account', relationship: 'TRANSFER', writeProperty: "community" });
+    this._visualiser.detectCommunity(this.communityDetectionAlgorithm, { label: this.cda_label, relationship: this.cda_relationship, writeProperty: "community" });
   }
 
   drawCentrality(event: any) {
-    this._visualiser.centrality(this.centralityAlgorithm, { label: 'Account', relationship: 'TRANSFER', writeProperty: "size" });
+    this._visualiser.centrality(this.centralityAlgorithm, { label: this.ca_label, relationship: this.ca_relationship, writeProperty: "size" });
   }
 
   drawPath() {
