@@ -18,14 +18,22 @@ services:
   
   neo4j:
     image: neo4j:3.5.6
+    network_mode: "bridge"
+    user: "${UID}:${GID}"
     environment:
       - NEO4J_AUTH=none
       - NEO4J_apoc.export.file.enabled=true
       - NEO4J_apoc.import.file.enabled=true
       - NEO4J_apoc.import.file.use_neo4j_config=false
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.\\\*
+      - dbms.security.procedures.unrestricted=apoc.*,algo.*
+      - dbms.security.procedures.whitelist=apoc.coll.*,apoc.load.*
+      - dbms.connectors.default_advertised_address=hdp004
+      - dbms.security.auth_enabled=false
     ports:
       - "17474:7474"
       - "17473:7473"
       - "17687:7687"
     volumes:
       - ./database:/var/lib/neo4j/import
+      - ./plugins:/plugins
