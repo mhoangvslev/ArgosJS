@@ -57,7 +57,7 @@ module.exports = {
                     kittyId: "kittyId",
                     genes: "genes",
                     owner: "owner",
-                    //generation: "generation"
+                    generation: "generation"
                 }
             },
             1: {

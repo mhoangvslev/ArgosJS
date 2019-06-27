@@ -24,7 +24,8 @@ module.exports = {
         },
         default: {
             network: "mainnet"
-        }
+        },
+        logSizePerOp: 500
     },
 
     datavis: {
