@@ -21,6 +21,9 @@ module.exports = {
         ipc: {
             path: "",
             network: ""
+        },
+        default: {
+            network: "mainnet"
         }
     },
 

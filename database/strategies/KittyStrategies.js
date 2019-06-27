@@ -40,14 +40,11 @@ module.exports = {
             contractCall: {
                 funcName: "getKitty",
                 args: {
-                    kittyId: (kittyId) => {
-                        const result = ethers.utils.bigNumberify(kittyId).toString();
-                        //console.log(kittyId, result);
-                        return result;
-                    }
+                    kittyId: (kittyId) => { return ethers.utils.bigNumberify(kittyId) }
                 },
                 resAttr: "generation",
-                process: des_formatID
+                process: des_formatID,
+                ignoreError: true
             },
         }
     },
@@ -60,7 +57,7 @@ module.exports = {
                     kittyId: "kittyId",
                     genes: "genes",
                     owner: "owner",
-                    generation: "generation"
+                    //generation: "generation"
                 }
             },
             1: {
