@@ -2,8 +2,7 @@ version: '2.1'
 
 services:
   argosjs:
-    image: argosjs
-    build: .
+    image: minhhoangdang/argosjs
     environment:
       NODE_ENV: production
     links:
