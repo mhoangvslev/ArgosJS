@@ -12,10 +12,6 @@ module.exports = {
     owner: {
         type: 'string'
     },
-    avatar: {
-        type: 'string',
-        unique: true
-    },
     child: {
         type: 'relationship',
         relationship: 'CHILD',
