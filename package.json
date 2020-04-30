@@ -40,7 +40,7 @@
     "express": "^4.15.2",
     "fs": "0.0.1-security",
     "hammerjs": "^2.0.8",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "neo4j-driver": "^1.7.5",
     "net": "^1.0.2",
     "ng-multiselect-dropdown": "^0.2.3",
